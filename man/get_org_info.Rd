@@ -4,16 +4,28 @@
 \alias{get_org_info}
 \title{Return information about organisations from a name search}
 \usage{
-get_org_info(org_name, type = c("starts", "contains", "exact"))
+get_org_info(
+  org_name,
+  search_type = c("starts", "contains", "exact"),
+  org_role = c("all", "trust", "trust_site", "icb", "pcn", "any")
+)
 }
 \arguments{
 \item{org_name}{string Part or whole organisation name to search for}
 
-\item{type}{string Type of name search to perform}
+\item{search_type}{string Type of name search to perform}
+
+\item{org_role}{character vector Must be one of "all", "trust", "trust_site",
+"icb", "pcn" or "any". If "any" is specified, no filtering by organisation
+role will be done. If multiple values are supplied, the search will look for
+any of these types (an \code{OR} search). If "all" is specified, all results
+for NHS Trusts, NHS Trust sites, ICBs (technically sub-ICBs), and Primary
+Care Networks will be returned.}
 }
 \value{
-A tibble with 2 columns: \code{org_code} and \code{org_name}, and a row for
-each organisation matched by \code{name} (according to the chosen search \code{type})
+A tibble with 5 columns: \code{org_code}, \code{org_name}, \code{org_role}, \code{city}
+and \code{postcode}, and a row for each organisation matched by \code{name}
+(according to the chosen \code{search_type} and \code{org_role} arguments)
 }
 \description{
 The name search can be partial or exact. There are three flavours of search
