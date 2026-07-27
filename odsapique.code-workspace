@@ -1,0 +1,63 @@
+{
+  "settings": {
+    "projectColors.mainColor": "#3d658a",
+    "window.title": "odsapique",
+    "workbench.colorCustomizations": {
+      "editorRuler.foreground": "#ff4081",
+      "statusBarItem.warningBackground": "#3d658a",
+      "statusBarItem.warningForeground": "#ffffff",
+      "statusBarItem.warningHoverBackground": "#3d658a",
+      "statusBarItem.warningHoverForeground": "#ffffff90",
+      "statusBarItem.remoteBackground": "#4a7297",
+      "statusBarItem.remoteForeground": "#ffffff",
+      "statusBarItem.remoteHoverBackground": "#577fa4",
+      "statusBarItem.remoteHoverForeground": "#ffffff90",
+      "statusBar.background": "#3d658a",
+      "statusBar.foreground": "#ffffff",
+      "statusBar.border": "#3d658a",
+      "statusBar.debuggingBackground": "#3d658a",
+      "statusBar.debuggingForeground": "#ffffff",
+      "statusBar.debuggingBorder": "#3d658a",
+      "statusBar.noFolderBackground": "#3d658a",
+      "statusBar.noFolderForeground": "#ffffff",
+      "statusBar.noFolderBorder": "#3d658a",
+      "statusBar.prominentBackground": "#3d658a",
+      "statusBar.prominentForeground": "#ffffff",
+      "statusBar.prominentHoverBackground": "#3d658a",
+      "statusBar.prominentHoverForeground": "#ffffff90",
+      "focusBorder": "#3d658a99",
+      "progressBar.background": "#3d658a",
+      "textLink.foreground": "#7da5ca",
+      "textLink.activeForeground": "#8ab2d7",
+      "selection.background": "#30587d",
+      "list.highlightForeground": "#3d658a",
+      "list.focusAndSelectionOutline": "#3d658a99",
+      "button.background": "#3d658a",
+      "button.foreground": "#ffffff",
+      "button.hoverBackground": "#4a7297",
+      "tab.activeBorderTop": "#4a7297",
+      "pickerGroup.foreground": "#4a7297",
+      "list.activeSelectionBackground": "#3d658a4d",
+      "panelTitle.activeBorder": "#4a7297",
+      "activityBar.activeBorder": "#3d658a",
+      "activityBarBadge.foreground": "#ffffff",
+      "activityBarBadge.background": "#3d658a",
+      "titleBar.activeBackground": "#3d658a",
+      "titleBar.activeForeground": "#ffffff",
+      "titleBar.inactiveBackground": "#3d658a",
+      "titleBar.inactiveForeground": "#ffffff90"
+    },
+    "projectColors.name": "odsapique",
+    "projectColors.isActivityBarColored": false,
+    "projectColors.isTitleBarColored": true,
+    "projectColors.isStatusBarColored": true,
+    "projectColors.isProjectNameColored": true,
+    "projectColors.isActiveItemsColored": true,
+    "projectColors.setWindowTitle": true
+  },
+  "folders": [
+    {
+      "path": "."
+    }
+  ]
+}

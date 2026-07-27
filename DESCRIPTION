@@ -1,0 +1,21 @@
+Package: odsapique
+Title: Query the NHS Organisation Data Terminology FHIR API
+Version: 0.1.0
+Authors@R:
+    person(
+        "Fran", "Barton",
+        email = "francis.barton@nhs.net",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0002-5650-1176")
+    )
+Description: Search for an organisation name or details.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
+Depends: R (>= 4.1.0)
+Imports:
+    httr2,
+    purrr,
+    rlang,
+    tibble
