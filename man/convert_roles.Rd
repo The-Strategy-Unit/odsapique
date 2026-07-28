@@ -6,6 +6,12 @@
 \usage{
 convert_roles(roles)
 }
+\arguments{
+\item{roles}{A character vector}
+}
+\value{
+A character scalar (string)
+}
 \description{
 Converts a vector of role labels such as "trust" to a single string of codes
 }

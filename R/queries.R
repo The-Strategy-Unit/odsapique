@@ -66,9 +66,7 @@ get_org_info <- function(
   }
 
   resource_data <- extract_resource_data(resps)
-  vcc <- "valueCodeableConcept"
-  # pluck location for organisation role label
-  role_loc <- list("extension", 1, "extension", 2, vcc, "coding", 1, "display")
+  role_loc <- org_role_location("display")
   resource_data |>
     purrr::map(\(x) {
       tibble::tibble(
@@ -115,8 +113,58 @@ get_sites_from_org_code <- function(org_code, ...) {
 }
 
 
+#' Check to see if a code represents an organisation that is an NHS Trust
+#' @returns logical TRUE or FALSE
+#' @keywords internal
+is_trust <- function(org_code, ...) {
+  role_loc <- org_role_location("code")
+  value <- get_organisation_details(org_code, ...) |>
+    purrr::pluck(!!!role_loc, .default = "no")
+  value == "RO197"
+}
+
+
+#' Check to see if code represent NHS Trust sites
+#' @param org_codes A character vector of organisation codes
+#' @returns A logical vector of TRUE or FALSE values
+#' @keywords internal
+is_trust_site <- function(org_codes, ...) {
+  dots <- rlang::list2(...)
+  part_org_req <- \(...) purrr::partial(get_organisation_details, !!!dots)(...)
+  resps <- httr2::req_perform_parallel(purrr::map(org_codes, part_org_req))
+  role_loc <- org_role_location("code")
+  role_codes <- resps |>
+    httr2::resps_successes() |>
+    purrr::map(httr2::resp_body_json) |>
+    purrr::map_chr(\(x) purrr::pluck(x, !!!role_loc, .default = "no"))
+  role_codes == "RO198"
+}
+
+
+#' Returns a list of elements to use as a location for the poss_map accessor fn.
+#'
+#' @param which string Whether to access the organisation role code or the
+#'  organisation role name ("display")
+#' @keywords internal
+#' @returns A list
+org_role_location <- function(which = c("code", "display")) {
+  which <- rlang::arg_match(which)
+  vcc <- "valueCodeableConcept"
+  list("extension", 1, "extension", 2, vcc, "coding", 1, which)
+}
+
+#' A test to see if a relationship value is equal to "RE6" (IS_OPERATED_BY)
+#' @param structure A section of a list
+#' @returns logical TRUE or FALSE
+#' @keywords internal
+is_operated_by <- function(structure) {
+  value <- purrr::pluck(structure, "code", 1, "coding", 1, "code")
+  ifelse(is.null(value), FALSE, value == "RE6")
+}
 
 #' Converts a vector of role labels such as "trust" to a single string of codes
+#' @param roles A character vector
+#' @returns A character scalar (string)
 #' @keywords internal
 convert_roles <- function(roles) {
   sw_code <- \(x) switch(x, trust = 197, trust_site = 198, icb = 98, pcn = 272)
@@ -170,6 +218,19 @@ get_next_link_url <- function(resp, req) {
     httr2::req_url(req, next_url)
   }
 }
+
+
+#' Basic request to OrganizationAffiliation API
+#' @inheritParams get_name_from_org_code
+#' @keywords internal
+org_affiliation_request <- function(...) {
+  httr2::req_url_path_append(core_request(...), "OrganizationAffiliation")
+}
+
+
+#' @keywords internal
+org_req <- \(id, ...) httr2::req_url_path_append(organisation_request(...), id)
+
 
 #' Basic request to Organization API
 #' @inheritParams get_name_from_org_code
