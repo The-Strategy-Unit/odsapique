@@ -2,4 +2,5 @@
 
 export(get_name_from_org_code)
 export(get_org_info)
+export(get_sites_from_org_code)
 importFrom(rlang,":=")

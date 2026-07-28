@@ -82,6 +82,39 @@ get_org_info <- function(
     purrr::list_rbind()
 }
 
+#' Return affiliated sites of an NHS Trust, based on the Trust organisation code
+#'
+#' @inheritParams get_name_from_org_code
+#' @keywords internal
+#' @returns A character vector of site organisation codes
+#' @export
+get_sites_from_org_code <- function(org_code, ...) {
+  if (!is_trust(org_code, ...)) {
+    cli::cli_abort("The code {org_code} does not seem to be an NHS Trust")
+  }
+  aff_str <- "OrganizationAffiliation:participating-organization"
+  init_req <- org_affiliation_request(...) |>
+    httr2::req_url_query(active = "true") |>
+    httr2::req_url_query(`participating-organization` = org_code) |>
+    httr2::req_url_query(`_include` = aff_str)
+  count <- min(1000L, get_result_count(init_req))
+  new_req <- httr2::req_url_query(init_req, `_count` = count)
+  resps <- httr2::req_perform_iterative(new_req, get_next_link_url)
+  fails <- length(httr2::resps_failures(resps))
+  if (fails > 0) {
+    cli::cli_alert("{fails} request{?s} of {length(resps)} returned an error")
+  }
+  resource_data <- extract_resource_data(resps)
+  resource_data |>
+    purrr::map(\(x) {
+      x <- purrr::keep(x, is_operated_by)
+      poss_map(x, list("organization", "identifier", "value"))
+    }) |>
+    purrr::list_c() |>
+    purrr::keep(\(x) is_trust_site(x, ...))
+}
+
+
 
 #' Converts a vector of role labels such as "trust" to a single string of codes
 #' @keywords internal
