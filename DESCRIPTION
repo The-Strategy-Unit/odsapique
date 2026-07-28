@@ -1,6 +1,6 @@
 Package: odsapique
 Title: Query the NHS Organisation Data Terminology FHIR API
-Version: 0.2.0
+Version: 0.3.0
 Authors@R:
     person(
         "Fran", "Barton",
