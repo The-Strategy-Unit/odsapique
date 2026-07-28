@@ -7,7 +7,8 @@
 get_org_info(
   org_name,
   search_type = c("starts", "contains", "exact"),
-  org_role = c("all", "trust", "trust_site", "icb", "pcn", "any")
+  org_role = c("all", "trust", "trust_site", "icb", "pcn", "any"),
+  ...
 )
 }
 \arguments{
@@ -21,6 +22,8 @@ role will be done. If multiple values are supplied, the search will look for
 any of these types (an \code{OR} search). If "all" is specified, all results
 for NHS Trusts, NHS Trust sites, ICBs (technically sub-ICBs), and Primary
 Care Networks will be returned.}
+
+\item{...}{Used for supplying an alternative API URL. Use only if needed.}
 }
 \value{
 A tibble with 5 columns: \code{org_code}, \code{org_name}, \code{org_role}, \code{city}
@@ -31,10 +34,11 @@ and \code{postcode}, and a row for each organisation matched by \code{name}
 The name search can be partial or exact. There are three flavours of search
 available:
 \itemize{
-\item "starts": search for an organisation name that starts with \code{name}
-\item "contains": search for an organisation name that contains \code{name} anywhere
-\item "exact": search for an organisation name that exactly matches \code{name}
-Use the \code{type} argument to specify which one you want. \code{"starts"} is the
-default option.
+\item "starts": search for an organisation name that starts with \code{org_name}
+\item "contains": search for an organisation name that contains \code{org_name}
+anywhere
+\item "exact": search for an organisation name that exactly matches \code{org_name}
+Use the \code{search_type} argument to specify which one you want. \code{"starts"} is
+the default option.
 }
 }

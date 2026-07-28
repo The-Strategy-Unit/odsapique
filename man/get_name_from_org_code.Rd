@@ -4,10 +4,12 @@
 \alias{get_name_from_org_code}
 \title{Return an organisation name, based on its organisation code}
 \usage{
-get_name_from_org_code(org_code)
+get_name_from_org_code(org_code, ...)
 }
 \arguments{
 \item{org_code}{string - the organisation code}
+
+\item{...}{Used for supplying an alternative API URL. Use only if needed.}
 }
 \value{
 A named character vector of length 1. The organisation name is the

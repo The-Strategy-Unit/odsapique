@@ -1,11 +1,12 @@
 #' Return an organisation name, based on its organisation code
 #'
 #' @param org_code string - the organisation code
+#' @param ... Used for supplying an alternative API URL. Use only if needed.
 #' @returns A named character vector of length 1. The organisation name is the
 #'  content, with the org code as name of the vector
 #' @export
-get_name_from_org_code <- function(org_code) {
-  resp <- organisation_query() |>
+get_name_from_org_code <- function(org_code, ...) {
+  resp <- organisation_request(...) |>
     httr2::req_url_path_append(org_code) |>
     httr2::req_perform() |>
     httr2::resp_check_status()
@@ -18,11 +19,12 @@ get_name_from_org_code <- function(org_code) {
 #'
 #' The name search can be partial or exact. There are three flavours of search
 #'  available:
-#'  * "starts": search for an organisation name that starts with `name`
-#'  * "contains": search for an organisation name that contains `name` anywhere
-#'  * "exact": search for an organisation name that exactly matches `name`
-#' Use the `type` argument to specify which one you want. `"starts"` is the
-#'  default option.
+#'  * "starts": search for an organisation name that starts with `org_name`
+#'  * "contains": search for an organisation name that contains `org_name`
+#'     anywhere
+#'  * "exact": search for an organisation name that exactly matches `org_name`
+#' Use the `search_type` argument to specify which one you want. `"starts"` is
+#'  the default option.
 #'
 #' @param org_name string Part or whole organisation name to search for
 #' @param search_type string Type of name search to perform
@@ -32,6 +34,7 @@ get_name_from_org_code <- function(org_code) {
 #'  any of these types (an `OR` search). If "all" is specified, all results
 #'  for NHS Trusts, NHS Trust sites, ICBs (technically sub-ICBs), and Primary
 #'  Care Networks will be returned.
+#' @inheritParams get_name_from_org_code
 #' @returns A tibble with 5 columns: `org_code`, `org_name`, `org_role`, `city`
 #'  and `postcode`, and a row for each organisation matched by `name`
 #'  (according to the chosen `search_type` and `org_role` arguments)
@@ -39,13 +42,14 @@ get_name_from_org_code <- function(org_code) {
 get_org_info <- function(
   org_name,
   search_type = c("starts", "contains", "exact"),
-  org_role = c("all", "trust", "trust_site", "icb", "pcn", "any")
+  org_role = c("all", "trust", "trust_site", "icb", "pcn", "any"),
+  ...
 ) {
   search_type <- rlang::arg_match(search_type) |>
     switch(starts = "name", contains = "name:contains", exact = "name:exact")
   org_role <- rlang::arg_match(org_role, multiple = TRUE)
   org_name <- toupper(org_name)
-  init_req <- organisation_query() |>
+  init_req <- organisation_request(...) |>
     httr2::req_url_query(!!search_type := org_name, .space = "form")
   if ("any" %in% org_role) {
     new_req <- init_req
@@ -134,15 +138,18 @@ get_next_link_url <- function(resp, req) {
   }
 }
 
-
+#' Basic request to Organization API
+#' @inheritParams get_name_from_org_code
 #' @keywords internal
-organisation_query <- function(api_url = "https://sandbox.api.service.nhs.uk") {
-  httr2::req_url_path_append(core_query(api_url), "Organization")
+organisation_request <- function(...) {
+  httr2::req_url_path_append(core_request(...), "Organization")
 }
 
 #' @keywords internal
-core_query <- function(api_url) {
+core_request <- function(api_url = "https://sandbox.api.service.nhs.uk") {
   httr2::request(api_url) |>
     httr2::req_url_path_append("organisation-data-terminology-api") |>
-    httr2::req_url_path_append("fhir")
+    httr2::req_url_path_append("fhir") |>
+    # See https://digital.nhs.uk/developer/api-catalogue/organisation-data-terminology#overview--rate-limits
+    httr2::req_throttle(capacity = 5000, fill_time_s = 300)
 }
