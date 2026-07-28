@@ -15,7 +15,7 @@ is_trust <- function(org_code, ...) {
 #' @keywords internal
 is_trust_site <- function(org_codes, ...) {
   dots <- rlang::list2(...)
-  part_org_req <- \(...) purrr::partial(get_organisation_details, !!!dots)(...)
+  part_org_req <- \(...) purrr::partial(org_req, !!!dots)(...)
   resps <- httr2::req_perform_parallel(purrr::map(org_codes, part_org_req))
   role_loc <- org_role_location("code")
   role_codes <- resps |>
