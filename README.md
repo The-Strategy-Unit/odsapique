@@ -27,11 +27,9 @@ The API supports a selection of queries, including:
 - :newspaper: Get deletion notices
 - :shrug: Perform a ValueSet expansion
 
-The first two of these are supported by the `Organization` API, and these are
-the only two features currently supported by this package.
-
-The "relationship" features belong to the `OrganizationAffiliation` API and are
-not yet supported by this package.
+The first two of these are supported by the `Organization` API.
+The two "relationship" features belong to the `OrganizationAffiliation` API.
+These four features are the only ones currently used by this package.
 
 ## Installation
 
