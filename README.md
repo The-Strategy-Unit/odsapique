@@ -20,18 +20,16 @@ R4 API.
 
 The API supports a selection of queries, including:
 
-* Search for an organisation
-* Get organisation details
-* Search for a relationship
-* Get relationship details
-* Get deletion notices
-* Perform a ValueSet expansion
+- :detective: Search for an organisation
+- :microscope: Get organisation details
+- :handshake: Search for a relationship
+- :ledger: Get relationship details
+- :newspaper: Get deletion notices
+- :shrug: Perform a ValueSet expansion
 
-The first two of these are supported by the `Organization` API, and these are
-the only two features currently supported by this package.
-
-The "relationship" features belong to the `OrganizationAffiliation` API and are
-not yet supported by this package.
+The first two of these are supported by the `Organization` API.
+The two "relationship" features belong to the `OrganizationAffiliation` API.
+These four features are the only ones currently used by this package.
 
 ## Installation
 
@@ -61,6 +59,25 @@ Search for an organisation with the exact name "Somerset NHS Foundation Trust"
 get_org_info("Somerset NHS Foundation Trust", type = "exact")
 ```
 
+Return all NHS Trust sites that are [operated by][api_opd] a given NHS Trust.
+Supply the org code for the Trust.
+
+> [!NOTE]
+> This returns only sites (organisations that have an active role code of
+> "RO198") that have an `RE6` ("IS OPERATED BY") relationship to the Trust.
+> A Trust is defined as an organisation with an active role code of "RO197".
+
+[api_opd]: https://www.odsdatasearchandexport.nhs.uk/referenceDataCatalogue/Relationships_571324965.html
+
+```r
+get_sites_from_org_code("RD8")
+```
+
+
+Please note that [throttling][api_rates] is in place, so heavy use may result in
+delays in data being returned.
+
+[api_rates]: https://digital.nhs.uk/developer/api-catalogue/organisation-data-terminology#overview--rate-limits
 
 ## Problems
 

@@ -2,6 +2,7 @@
 #' @returns logical TRUE or FALSE
 #' @keywords internal
 is_trust <- function(org_code, ...) {
+  stopifnot(rlang::is_string(org_code))
   role_loc <- org_role_location("code")
   value <- get_organisation_details(org_code, ...) |>
     purrr::pluck(!!!role_loc, .default = "no")
