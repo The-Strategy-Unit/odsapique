@@ -6,11 +6,8 @@
 #'  content, with the org code as name of the vector
 #' @export
 get_name_from_org_code <- function(org_code, ...) {
-  resp <- organisation_request(...) |>
-    httr2::req_url_path_append(org_code) |>
-    httr2::req_perform() |>
-    httr2::resp_check_status()
-  org_name <- purrr::chuck(httr2::resp_body_json(resp), "name")
+  resp <- get_organisation_details(org_code, ...)
+  org_name <- purrr::chuck(resp, "name")
   rlang::set_names(org_name, org_code)
 }
 
@@ -79,6 +76,20 @@ get_org_info <- function(
     }) |>
     purrr::list_rbind()
 }
+
+#' Query the Organization API using an organisation code
+#'
+#' See https://digital.nhs.uk/developer/api-catalogue/organisation-data-terminology#get-/Organization/-id-
+#' @inheritParams get_name_from_org_code
+#' @returns All data as a list
+#' @export
+get_organisation_details <- function(org_code, ...) {
+  org_req(org_code, ...) |>
+    httr2::req_perform() |>
+    httr2::resp_check_status() |>
+    httr2::resp_body_json()
+}
+
 
 #' Return affiliated sites of an NHS Trust, based on the Trust organisation code
 #'
