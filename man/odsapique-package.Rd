@@ -6,7 +6,7 @@
 \alias{odsapique-package}
 \title{odsapique: Query the NHS Organisation Data Terminology FHIR API}
 \description{
-Search for an organisation name or details.
+Search for an organisation name or details. Find all sites that are operated by an NHS Trust.
 }
 \author{
 \strong{Maintainer}: Fran Barton \email{francis.barton@nhs.net} (\href{https://orcid.org/0000-0002-5650-1176}{ORCID})

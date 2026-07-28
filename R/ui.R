@@ -1,16 +1,13 @@
 #' Return an organisation name, based on its organisation code
 #'
-#' @param org_code string - the organisation code
+#' @param org_code string An NHS England organisation code
 #' @param ... Used for supplying an alternative API URL. Use only if needed.
 #' @returns A named character vector of length 1. The organisation name is the
 #'  content, with the org code as name of the vector
 #' @export
 get_name_from_org_code <- function(org_code, ...) {
-  resp <- organisation_request(...) |>
-    httr2::req_url_path_append(org_code) |>
-    httr2::req_perform() |>
-    httr2::resp_check_status()
-  org_name <- purrr::chuck(httr2::resp_body_json(resp), "name")
+  resp <- get_organisation_details(org_code, ...)
+  org_name <- purrr::chuck(resp, "name")
   rlang::set_names(org_name, org_code)
 }
 
@@ -49,6 +46,7 @@ get_org_info <- function(
     switch(starts = "name", contains = "name:contains", exact = "name:exact")
   org_role <- rlang::arg_match(org_role, multiple = TRUE)
   org_name <- toupper(org_name)
+
   init_req <- organisation_request(...) |>
     httr2::req_url_query(!!search_type := org_name, .space = "form")
   if ("any" %in% org_role) {
@@ -57,18 +55,14 @@ get_org_info <- function(
     role_codes <- convert_roles(org_role)
     new_req <- httr2::req_url_query(init_req, activeRoleCode = role_codes)
   }
+
   count <- min(1000L, get_result_count(new_req))
   final_req <- httr2::req_url_query(new_req, `_count` = count)
-  resps <- httr2::req_perform_iterative(final_req, get_next_link_url)
-  fails <- length(httr2::resps_failures(resps))
-  if (fails > 0) {
-    cli::cli_alert("{fails} request{?s} of {length(resps)} returned an error")
-  }
+  resps <- httr2::req_perform_iterative(final_req, get_next_link_url) |>
+    alert_on_fails()
 
   resource_data <- extract_resource_data(resps)
-  vcc <- "valueCodeableConcept"
-  # pluck location for organisation role label
-  role_loc <- list("extension", 1, "extension", 2, vcc, "coding", 1, "display")
+  role_loc <- org_role_location("display")
   resource_data |>
     purrr::map(\(x) {
       tibble::tibble(
@@ -83,73 +77,45 @@ get_org_info <- function(
 }
 
 
-#' Converts a vector of role labels such as "trust" to a single string of codes
-#' @keywords internal
-convert_roles <- function(roles) {
-  sw_code <- \(x) switch(x, trust = 197, trust_site = 198, icb = 98, pcn = 272)
-  if ("all" %in% roles) {
-    role_codes <- c(197, 198, 98, 272)
-  } else {
-    role_codes <- purrr::map_int(roles, sw_code)
-  }
-  paste0(paste0("RO", role_codes), collapse = ",")
-}
-
-
-#' A "safe" version of purrr::map_chr that returns NA if a value is not found
-#' @keywords internal
-poss_map <- \(...) purrr::partial(purrr::map_chr, .default = NA_character_)(...)
-
-
-#' Gets the count of results for a query
-#' @keywords internal
-get_result_count <- function(req) {
-  req |>
-    httr2::req_url_query(`_summary` = "count") |>
+#' Query the Organization API using an organisation code
+#'
+#' See https://digital.nhs.uk/developer/api-catalogue/organisation-data-terminology#get-/Organization/-id-
+#' @inheritParams get_name_from_org_code
+#' @returns All data as a list
+#' @export
+get_organisation_details <- function(org_code, ...) {
+  org_req(org_code, ...) |>
     httr2::req_perform() |>
     httr2::resp_check_status() |>
-    httr2::resp_body_json() |>
-    purrr::chuck("total")
+    httr2::resp_body_json()
 }
 
 
-#' Extracts data from a list of API responses
-#' @keywords internal
-extract_resource_data <- function(resps) {
-  resps |>
-    httr2::resps_successes() |>
-    purrr::map(httr2::resp_body_json) |>
-    purrr::map("entry") |>
-    purrr::map_depth(2, "resource")
-}
-
-
-#' A helper function to extract the next link from a response and return an
-#'  amended request, or NULL if all results have now been returned
-#' @keywords internal
-get_next_link_url <- function(resp, req) {
-  link_element <- purrr::pluck(httr2::resp_body_json(resp), "link")
-  next_link_element <- purrr::keep(link_element, \(x) x[["relation"]] == "next")
-  next_url <- purrr::pluck(next_link_element, 1, "url")
-  if (is.null(next_url)) {
-    NULL
-  } else {
-    httr2::req_url(req, next_url)
-  }
-}
-
-#' Basic request to Organization API
+#' Return affiliated sites of an NHS Trust, based on the Trust organisation code
+#'
 #' @inheritParams get_name_from_org_code
 #' @keywords internal
-organisation_request <- function(...) {
-  httr2::req_url_path_append(core_request(...), "Organization")
-}
-
-#' @keywords internal
-core_request <- function(api_url = "https://sandbox.api.service.nhs.uk") {
-  httr2::request(api_url) |>
-    httr2::req_url_path_append("organisation-data-terminology-api") |>
-    httr2::req_url_path_append("fhir") |>
-    # See https://digital.nhs.uk/developer/api-catalogue/organisation-data-terminology#overview--rate-limits
-    httr2::req_throttle(capacity = 5000, fill_time_s = 300)
+#' @returns A character vector of site organisation codes
+#' @export
+get_sites_from_org_code <- function(org_code, ...) {
+  if (!is_trust(org_code, ...)) {
+    cli::cli_abort("The code {org_code} does not seem to be an NHS Trust")
+  }
+  aff_str <- "OrganizationAffiliation:participating-organization"
+  init_req <- org_affiliation_request(...) |>
+    httr2::req_url_query(active = "true") |>
+    httr2::req_url_query(`participating-organization` = org_code) |>
+    httr2::req_url_query(`_include` = aff_str)
+  count <- min(1000L, get_result_count(init_req))
+  new_req <- httr2::req_url_query(init_req, `_count` = count)
+  resps <- httr2::req_perform_iterative(new_req, get_next_link_url) |>
+    alert_on_fails()
+  resource_data <- extract_resource_data(resps)
+  resource_data |>
+    purrr::map(\(x) {
+      x <- purrr::keep(x, is_operated_by)
+      poss_map(x, list("organization", "identifier", "value"))
+    }) |>
+    purrr::list_c() |>
+    purrr::keep(\(x) is_trust_site(x, ...))
 }
